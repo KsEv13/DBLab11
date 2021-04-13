@@ -1,0 +1,41 @@
+EXERCISE 1: 
+Using Neo4J-empty project, build a representation of the relationship between the following 
+fighters (fighter is a Node{name,weight}, beat is a relationship).
+(We are creating fighter 1, if he has not been created yet, then fighter 2 and we are establishing relationship.
+If it was already created, just find (match) him)
+
+~ Create(p:Fighter {name: "Khabib Nurmagomedov", weight: "155"}),(pp:Fighter {name: "Rafael Dos Anjos", weight: "155"}), (p)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Rafael Dos Anjos" CREATE(pp:Fighter {name: "Neil Magny", weight: "170"}), (a)-[:beats]->(pp)
+~ Create(p:Fighter {name: "Jon Jones", weight: "205"}),(pp:Fighter {name: "Daniel Cormier", weight: "205"}), (p)-[:beats]->(pp)
+~ Create(p:Fighter {name: "Michael Bisping", weight: "185"}),(pp:Fighter {name: "Matt Hamill", weight: "185"}), (p)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Jon Jones" CREATE(pp:Fighter {name: "Brandon Vera", weight: "205"}), (a)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Brandon Vera" CREATE(pp:Fighter {name: "Frank Mir", weight: "230"}), (a)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Frank Mir" CREATE(pp:Fighter {name: "Brock Lesnar", weight: "230"}), (a)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Neil Magny" CREATE(pp:Fighter {name: "Kelvin Gastelum", weight: "185"}), (a)-[:beats]->(pp)
+~ MATCH (a:Fighter) WHERE a.name = "Kelvin Gastelum" MATCH (b:Fighter) WHERE b.name = "Michael Bisping" CREATE (a)-[:beats]->(b)
+~ MATCH (a:Fighter) WHERE a.name = "Michael Bisping" MATCH (b:Fighter) WHERE b.name = "Matt Hamill" CREATE (a)-[:beats]->(b)
+~ MATCH (a:Fighter) WHERE a.name = "Michael Bisping" MATCH (b:Fighter) WHERE b.name = "Kelvin Gastelum" CREATE (a)-[:beats]->(b)
+~ MATCH (a:Fighter) WHERE a.name = "Matt Hamill" MATCH (b:Fighter) WHERE b.name = "Jon Jones" CREATE (a)-[:beats]->(b)
+
+EXERCISE 2:
+
+– Return all middle/Walter/light weight fighters (155,170,185) who at least have one 
+win.
+MATCH (f:Fighter)-[:beats]-() WHERE f.weight = '155' OR f.weight = '170' OR f.weight = '185' RETURN DISTINCT f
+
+– Return fighters who had 1-1 record with each other. Use Count from the aggregation 
+functions.
+MATCH (f:Fighter)-[b1:beats]-(l:Fighter), (l)-[b2:beats]-(f) with f, l, count(b1) as cnt1, count(b2) as cnt2 WHERE cnt1 = 1 AND cnt2 = 1 RETURN *
+
+– Return all fighter that can “Khabib Nurmagomedov” beat them and he didn’t have a 
+fight with them yet.
+MATCH (f:Fighter)-[*2..]-(l:Fighter) WHERE f.name = 'Khabib Nurmagomedov' RETURN l
+
+– Return undefeated Fighters(0 loss), defeated fighter (0 wins).
+MATCH (f:Fighter) WHERE NOT ()-[:beats]->(f)
+MATCH (l:Fighter) WHERE NOT (l)-[:beats]->() RETURN f, l
+
+– Return all fighters MMA records and create query to enter the record as a property for 
+a fighter {name, weight, record}.
+MATCH (f1 {name: 'Khabib Nurmagomedov'}), (f2 {name: 'Rafael Dos Anjos'})
+SET f1.record = [f2.name, f2.weight] RETURN ()-[:beats]-()
